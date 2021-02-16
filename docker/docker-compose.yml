@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  zookeeper-solr:
+    image: zookeeper:3.5
+    container_name: zoo_solr
+    restart: always
+    ports:
+      - ${ZOO_EXPOSED_PORT}:2181
+    networks:
+      - shared_network
+  solr:
+    image: solr:8.3
+    container_name: solr
+    ports:
+      - ${SOLR_EXPOSED_PORT}:8983
+    depends_on:
+      - zookeeper-solr
+    environment:
+      ZK_HOSTS: ${ZK_HOSTS}
+      SOLR_JAVA_MEM: "-Xms2g -Xmx2g"
+    restart: always
+    volumes:
+      - solr_data:/var/solr/
+    command: sh -c "solr start -c -f"
+    networks:
+      - shared_network
+
+networks:
+  shared_network:
+    external:
+      name: shared_network
+
+volumes:
+  solr_data:
